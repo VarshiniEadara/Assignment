@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tax Calculator</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        background-image: url('https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.alamy.com%2Fstock-photo%2Ftax-calculation.html&psig=AOvVaw2P8uQXehVoFhqw-384LR51&ust=1713204497546000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCNCpv52mwoUDFQAAAAAdAAAAABAQ.jpg'); 
+        background-size:cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .container {
+        max-width: 400px;
+        margin: 50px auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        margin-bottom: 5px;
+        display: block;
+        color: #333;
+    }
+
+    input, select {
+        width: calc(100% - 20px);
+        padding: 8px;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: #007bff;
+    }
+
+    .error-icon {
+        display: none;
+        float: right;
+        margin-top: -30px;
+        margin-right: 10px;
+        color: red;
+        cursor: pointer;
+    }
+
+    .tooltip {
+        position: absolute;
+        background-color: black;
+        color: white;
+        padding: 5px;
+        border-radius: 5px;
+        display: none;
+    }
+
+    button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        border-radius: 5px;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <form id="tax-form">
+        <div>
+            <label for="gross-income" style="color: #007bff;">Enter Gross Annual Income:</label>
+            <input type="number" id="gross-income" placeholder="Enter gross annual income" required>
+            <div class="error-icon" id="gross-income-error" title="Please enter numbers only!">!</div>
+            <div class="tooltip" id="gross-income-tooltip"></div>
+        </div>
+        <div>
+            <label for="extra-income" style="color: #007bff;">Enter Extra Income:</label>
+            <input type="number" id="extra-income" placeholder="Enter extra income from other sources">
+            <div class="error-icon" id="extra-income-error" title="Please enter numbers only!">!</div>
+            <div class="tooltip" id="extra-income-tooltip"></div>
+        </div>
+        <div>
+            <label for="age" style="color: #007bff;">Age Group:</label>
+            <select id="age" required>
+                <option value="">Select Age Group</option>
+                <option value="below-40">&lt; 40</option>
+                <option value="40-to-59">&ge; 40 &lt; 60</option>
+                <option value="60-and-above">&ge; 60</option>
+            </select>
+            <div class="error-icon" id="age-error" title="Age group is mandatory!">!</div>
+            <div class="tooltip" id="age-tooltip"></div>
+        </div>
+        <div>
+            <label for="deductions" style="color: #007bff;">Enter Total Applicable Deductions:</label>
+            <input type="number" id="deductions" placeholder="Enter total applicable deductions">
+            <div class="error-icon" id="deductions-error" title="Please enter numbers only!">!</div>
+            <div class="tooltip" id="deductions-tooltip"></div>
+        </div>
+        <button type="submit">Calculate Tax</button>
+    </form>
+</div>
+
+<div class="modal" id="resultModal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <p id="taxResult"></p>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('input[type="number"]').forEach(function(input) {
+        input.addEventListener('input', function() {
+            var value = parseFloat(this.value);
+            var tooltipId = this.id + '-tooltip';
+            var errorIcon = this.nextElementSibling;
+            var tooltip = document.getElementById(tooltipId);
+
+            if (isNaN(value) || this.value.trim() === '') {
+                errorIcon.style.display = 'block';
+                tooltip.style.display = 'none';
+            } else {
+                errorIcon.style.display = 'none';
+                tooltip.style.display = 'none';
+            }
+        });
+
+        input.addEventListener('mouseenter', function() {
+            var value = parseFloat(this.value);
+            var tooltipId = this.id + '-tooltip';
+            var tooltip = document.getElementById(tooltipId);
+
+            if (isNaN(value) || this.value.trim() === '') {
+                tooltip.innerText = 'Please enter numbers only!';
+                tooltip.style.display = 'block';
+            } else {
+                tooltip.style.display = 'none';
+            }
+        });
+
+        input.addEventListener('mouseleave', function() {
+            var tooltipId = this.id + '-tooltip';
+            var tooltip = document.getElementById(tooltipId);
+            tooltip.style.display = 'none';
+        });
+    });
+
+    document.getElementById('tax-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        // Retrieve values from form fields
+        var grossIncome = parseFloat(document.getElementById('gross-income').value);
+        var extraIncome = parseFloat(document.getElementById('extra-income').value) || 0;
+        var age = document.getElementById('age').value;
+        var deductions = parseFloat(document.getElementById('deductions').value) || 0;
+
+        // Validate inputs
+        if (isNaN(grossIncome) || isNaN(extraIncome) || !age || isNaN(deductions)) {
+            alert('Please fill in all fields with valid numbers.');
+            return;
+        }
+
+        // Calculate tax
+        var taxRate;
+        if (age === 'below-40') {
+            taxRate = 0.3;
+        } else if (age === '40-to-59') {
+            taxRate = 0.4;
+        } else {
+            taxRate = 0.1;
+        }
+        
+        var totalIncome = grossIncome + extraIncome;
+        var taxableIncome = Math.max(totalIncome - deductions - 800000, 0);
+        var taxAmount = taxRate * taxableIncome;
+
+        // Display result in modal
+        document.getElementById('taxResult').innerText = 'Your overall income will be ' + taxAmount.toFixed(2) + ' Lakhs';
+        document.getElementById('resultModal').style.display = 'block';
+    });
+</script>
+
+<script>
+    // Close the modal when the user clicks the close button
+    document.querySelector('.close').addEventListener('click', function() {
+        document.getElementById('resultModal').style.display = 'none';
+    });
+
+    // Close the modal when the user clicks outside the modal content
+    window.onclick = function(event) {
+        var modal = document.getElementById('resultModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+</script>
+
+</body>
+</html>
+
